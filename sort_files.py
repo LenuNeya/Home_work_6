@@ -2,33 +2,18 @@ from pathlib import Path
 import argparse
 import re
 import shutil
+import constants as const
 
-
-CYRILLIC_SYMBOLS = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ'
-TRANSLATION = ('a','b', 'v', 'h', 'd', 'e', 'e', 'zh', 'z', 'y', 'i', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u',
-               'f', 'kh', 'ts', 'ch', 'sh', 'sch', '', 'y', '', 'e', 'yu', 'ia', 'ye', 'i', 'yi', 'g')
-
-TRANS = {}
-for c, l in zip(CYRILLIC_SYMBOLS, TRANSLATION):
-    TRANS[ord(c)] = l
-    TRANS[ord(c.upper())] = l.upper()
-
-FOLDERS = {
-    'images': {'jpeg', 'png', 'jpg', 'svg', 'bmp'},
-    'video': {'avi', 'mp4', 'mov', 'mkv'},
-    'documents': {'doc', 'docx', 'txt', 'pdf', 'xlsx', 'xls', 'pptx', 'csv'},
-    'audio': {'mp3', 'ogg', 'wavV', 'amr'},
-    'archives': {'zip', 'gz', 'tar'}
-}
 
 FOLDERS_DELETE = []
+output_folder = Path('sorted')
 
 def folder_processing(path: Path) -> None:
 
     if path.is_file():
         file_processing(path) 
     else:
-        if path.name in FOLDERS.keys():
+        if path.name in const.FOLDERS:
             return None # пропускаю папки archives, video, audio, documents, images 
         
         for element in path.iterdir():
@@ -41,7 +26,7 @@ def file_processing(path: Path) -> None:
 
     suffix = path.suffix
     new_folder = 'other'
-    for key, value in FOLDERS.items(): # за розширенням визначаю, в яку папку перенести
+    for key, value in const.FOLDERS.items(): # за розширенням визначаю, в яку папку перенести
         if suffix.replace('.', '').lower() in value:
             new_folder = key
             break
@@ -60,7 +45,7 @@ def file_processing(path: Path) -> None:
 
 def normalize(element_name: str) -> str:
 
-    new_name = element_name.translate(TRANS) # виконую "переклад" рядка
+    new_name = element_name.translate(const.TRANS) # виконую "переклад" рядка
     new_name = re.sub('\W', '_', new_name) # усі символи не літери чи цифри, змінюю на _
     return new_name
     
@@ -85,8 +70,8 @@ def try_to_delete_folder(folder: Path) -> None:
             folder.rename(folder.parent / new_name)
 
 
-if __name__ == '__main__':
-    
+def processing_sort():
+   
     # з командного рядка даю можливість задачи 2 аргументи,
     # 1-й обов'язковий, вказує, яку папку будемо розбирати
     # 2-й необов'язковий, якщо не вказати, то створиться папка sorted, куди і перенесуться файли, та створяться нові папки
@@ -99,3 +84,7 @@ if __name__ == '__main__':
     output_folder = Path(args.get('output'))
     sort(source_folder)
 
+
+if __name__ == '__main__':
+
+    processing_sort()
